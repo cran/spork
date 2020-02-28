@@ -1,39 +1,67 @@
+#' Parse Spork.
+#'
+#' Parses spork.
+#' Generic, with method \code{\link{as_spar.spork}}.
+#' @param x object
+#' @param ... passed arguments
+#' @keywords internal
+#' @export
+#' @family generics
+#' @family spar
+#' @return see methods
+#' @examples
+#' # see methods
+as_spar <- function(x, ...)UseMethod('as_spar')
+
 #' Parse Spork
 #'
 #' Parses spork.  Converts length-one character
 #' to vector of tokens.  Explicit tokens include
 #' \code{*._^} and any of these escaped with
-#' backslash, e.g. \code{'\\*'}. One or more consecutive
-#' whitespace characters are a single token,
+#' backslash, e.g. \code{'\\*'}.
+#' Backslash-n is an explicit token (\code{'\\n'}).
+#' One or more consecutive whitespace characters are a single token,
 #' as are one or more consecutive octothorpes (\code{#}).
 #' Any string of characters delimited by
 #' one or more of the above is implicitly
 #' a token as well.
 #'
-#' @param x length-one character using spork syntax; coerced to character
+#' @param x length-one character using spork syntax
 #' @param ... ignored arguments
 #' @export
-#' @keywords internal
-#' @return character
-#' @family parse
+#' @keywords manip
+#' @return spar (character vector)
+#' @family spar
+#' @family spork
 #' @examples
-#' sporklet('one joule (Omega) ~ 1 kg*m^2./s^2')
+#' as_spar(as_spork('one joule (Omega) ~ 1 kg*m^2./s^2'))
 
-sporklet <- function(x, ...){
-  x <- as.character(x)
-#  stopifnot(length(x) >= 1)
-  if(length(x) == 0) return(character(0))
-  if(x == '')return('')
+as_spar.spork <- function(x, ...){
+  if(length(x) == 0) {
+    out <- character(0)
+    class(out) <- union('spar', class(out))
+    return(out)
+  }
+  if(length(x) > 1)stop('expecting length-one character')
+  if(x == ''){
+    out <- ''
+    class(out) <- union('spar', class(out))
+    return(out)
+  }
   input <- x
   output <- character(0)
   explicit <- c(
-    '\\s+','#+',
+    '[\\][n]','\\s+','#+',
     '[*]','[.]','[_]','\\^',
     '[\\][*]','[\\][.]','[\\][_]','[\\]\\^'
   )
   while(nchar(input)){
     m <- sapply(explicit, function(pattern)position(input, pattern))
-    if(max(m) == -1)return(c(output, input))
+    if(max(m) == -1){
+      out <- c(output, input)
+      class(out) <- union('spar', class(out))
+      return(out)
+    }
     m <- m[m != -1]
     m <- m[m == min(m)]
     stopifnot(length(m) == 1)
@@ -48,6 +76,7 @@ sporklet <- function(x, ...){
       input <- ''
     }
   }
+  class(output) <- union('spar', class(output))
   return(output)
 }
 

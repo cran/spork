@@ -7,8 +7,10 @@
 #' and superscripts (\code{x^y^z}). A dot
 #' (\code{x^y._z}) explicitly terminates
 #' a group. An asterisk (\code{*}) suggests
-#' multiplication. Special characters
-#' may be escaped with a backslash.
+#' multiplication; a literal backslash
+#' followed by 'n' suggests a newline
+#' (handling differs for latex vs. plotmath).
+#' Special characters may be escaped with a backslash.
 #' Convert to plotmath with \code{\link{as_plotmath}}
 #' and to latex with \code{\link{as_latex}}.
 #' Both plotmath and latex names of Greek
@@ -46,11 +48,44 @@ as_spork <- function(x, ...)UseMethod('as_spork')
 #' @param ... ignored arguments
 #' @export
 #' @family spork
+#' @family interface
+#' @family character
 #' @return spork
 #' @examples
 #' as_spork('V_c./F')
 as_spork.character <- function(x, ...){
   class(x) <- union('spork', class(x))
+  x
+}
+
+#' Coerce Spork to Spork
+#'
+#' Coerces 'spork' to class 'spork'.
+#' Supplies any implied terminal dots.
+#'
+#' @param x spork
+#' @param ... ignored arguments
+#' @export
+#' @family spork
+#' @keywords internal
+#' @return spork
+#' @examples
+#' as_spork(as_spork(c('C_max_ss','t^1/2','V_c./F','foo')))
+#' as_spork(as_spork('V_c./F'))
+#' as_spork(as_spork('V_c'))
+as_spork.spork <- function(x, ...){
+  if(length(x) == 0) return(x)
+  if(any(grepl('SPORKBOUNDARY',x)))stop('SPORKBOUNDARY is reserved')
+  test <- as_plotmath(as_spork(paste0(x,'SPORKBOUNDARY')))
+  aft <- sapply(test, USE.NAMES = FALSE, after, what = 'SPORKBOUNDARY', fixed = TRUE)
+  aft <- sapply(aft, function(i)if(length(i)==0)'' else i)
+  stable <- !grepl('[]}]',aft) # any closers?
+  if(all(stable))return(x)
+  problems <- x[!stable]
+  candidates <- paste0(problems,'.')
+  candidates <- as_spork(candidates)
+  verified <- as_spork(candidates)
+  x[!stable] <- verified
   x
 }
 
@@ -65,124 +100,11 @@ as_spork.character <- function(x, ...){
 #' @export
 #' @keywords internal
 #' @family spork
+#' @family factor
 #' @return spork
 #' @examples
 #' as_spork(as.factor('V_c./F'))
 as_spork.factor <- function(x, ...)as_spork(as.character(x), ...)
-
-#' Coerce to Plotmath
-#'
-#' Coerce to plotmath.  Generic, with method
-#' \code{\link{as_plotmath.spork}}.
-#'
-#' @param x object
-#' @param ... passed arguments
-#' @export
-#' @keywords internal
-#' @family plotmath
-#' @return plotmath
-#' @examples
-#' example(as_plotmath.spork)
-as_plotmath <- function(x, ...)UseMethod('as_plotmath')
-
-#' Coerce to Latex
-#'
-#' Coerce to latex.  Generic, with method
-#' \code{\link{as_latex.spork}}.
-#'
-#' @param x object
-#' @param ... passed arguments
-#' @export
-#' @keywords internal
-#' @family latex
-#' @return latex
-#' @examples
-#' example(as_latex.spork)
-as_latex <- function(x, ...)UseMethod('as_latex')
-
-#' Convert Spork to Plotmath
-#'
-#' Converts spork to plotmath. See \code{\link[grDevices]{plotmath}}.
-#' Vectorized version of \code{\link{spork_to_plotmath}}.
-#'
-#' @export
-#' @param x spork
-#' @param ... ignored
-#' @return plotmath
-#' @family plotmath
-#' @examples
-#' library(magrittr)
-#' 'V_c./F' %>% as_spork %>% as_plotmath
-#' 'AUC_ss' %>% as_spork %>% as_plotmath
-#' 'C_max_ss' %>% as_spork %>% as_plotmath
-#' 'var^eta_j' %>% as_spork %>% as_plotmath
-#' 'one joule (Omega) ~ 1 kg*m^2./s^2' %>% as_spork %>% as_plotmath
-as_plotmath.spork <- function(x, ...){
-  y <- sapply(x, spork_to_plotmath , USE.NAMES = F)
-  if(length(y) == 0) y <- character(0)
-  class(y) <- union('plotmath', class(y))
-  y
-}
-#' Convert Spork to Latex
-#'
-#' Converts spork to latex.
-#' Vectorized version of \code{\link{spork_to_latex}}.
-#'
-#' @export
-#' @param x spork
-#' @param ... ignored
-#' @return latex
-#' @family latex
-#' @examples
-#' x <- c(
-#'   'V_c./F',
-#'   'AUC_ss',
-#'   'C_max_ss',
-#'   'var^eta_j'
-#' )
-#' x <- as_spork(x)
-#' as_latex(x)
-#' as_latex(as_spork('gravitational force (kg\\.m/s^2.)'))
-as_latex.spork <- function(x, ...){
-  y <- sapply(x, spork_to_latex , USE.NAMES = F)
-  if(length(y) == 0) y <- character(0)
-  class(y) <- union('latex', class(y))
-  y
-}
-
-#' Coerce Plotmath to Expression
-#'
-#' Coerces plotmath to expression by parsing as text.
-#' @export
-#' @keywords internal
-#' @family spork
-#' @param x plotmath
-#' @param ... ignored arguments
-#' @return expression
-#' @examples
-#' x <- c(
-#'   'V_c./F',
-#'   'AUC_ss',
-#'   'C_max_ss',
-#'   'var^eta_j'
-#' )
-#' x <- as_spork(x)
-#' x <- as_plotmath(x)
-#' x
-#' as.expression(x)[[4]]
-#' as.expression(x[[4]])
-#' class(as.expression(x))
-#' lapply(as.expression(x), class)
-#' as.expression(as_plotmath(as_spork('V_c./F')))
-#' as.expression(as_plotmath(as_spork(character(0))))
-#' library(magrittr)
-#' 'gravitational force (kg\\.m/s^2.)' %>%
-#'   as_spork %>%
-#'   as_plotmath %>%
-#'   as.expression -> label
-#'   label
-
-as.expression.plotmath <- function(x, ...)parse(text = x)
 
 #' Subset Spork
 #'
@@ -191,7 +113,7 @@ as.expression.plotmath <- function(x, ...)parse(text = x)
 #' @param ... passed to next method
 #' @export
 #' @keywords internal
-#' @family util
+#' @family spork
 #' @return spork
 #' @examples
 #' x <- c(
@@ -216,7 +138,7 @@ as.expression.plotmath <- function(x, ...)parse(text = x)
 #' @param ... passed to next method
 #' @export
 #' @keywords internal
-#' @family util
+#' @family spork
 #' @return spork
 #' @examples
 #' x <- c(
@@ -235,106 +157,21 @@ as.expression.plotmath <- function(x, ...)parse(text = x)
   y
 }
 
-#' Subset Plotmath
+#' Coerce Spork to List
 #'
-#' Subsets plotmath, retaining class.
-#' @param x plotmath
-#' @param ... passed to next method
+#' Coerces spork to list.  Each element inherits class.
+#' Supports use of \code{\link{lapply}}.
+#' @param x spork
+#' @param ... ignored
 #' @export
 #' @keywords internal
-#' @family util
-#' @return plotmath
+#' @family spork
+#' @return list of spork
 #' @examples
-#' x <- c(
-#'   'V_c./F',
-#'   'AUC_ss',
-#'   'C_max_ss',
-#'   'var^eta_j'
-#' )
-#' x <- as_plotmath(as_spork(x))
-#' class(x)
-#' class(x[1])
-`[.plotmath` <- function(x, ...){
-  y <- NextMethod()
-  # contrasts and levels will have been handled
-  class(y) <- union('plotmath', class(y))
+#' x <- as_spork(letters[1:5])
+#' lapply(x, class)
+as.list.spork <- function(x, ...){
+  y <- as.list(as.character(x))
+  y <- lapply(y, as_spork)
   y
 }
-#' Element-select Plotmath
-#'
-#' Element-selects plotmath, retaining class.
-#' @param x plotmath
-#' @param ... passed to next method
-#' @export
-#' @keywords internal
-#' @family util
-#' @return plotmath
-#' @examples
-#' x <- c(
-#'   'V_c./F',
-#'   'AUC_ss',
-#'   'C_max_ss',
-#'   'var^eta_j'
-#' )
-#' x <- as_plotmath(as_spork(x))
-#' class(x)
-#' class(x[[1]])
-`[[.plotmath` <- function(x, ...){
-  y <- NextMethod()
-  # contrasts and levels will have been handled
-  class(y) <- union('plotmath', class(y))
-  y
-}
-
-#' Subset Latex
-#'
-#' Subsets latex, retaining class.
-#' @param x latex
-#' @param ... passed to next method
-#' @export
-#' @keywords internal
-#' @family util
-#' @return latex
-#' @examples
-#' x <- c(
-#'   'V_c./F',
-#'   'AUC_ss',
-#'   'C_max_ss',
-#'   'var^eta_j'
-#' )
-#' x <- as_latex(as_spork(x))
-#' class(x)
-#' class(x[1])
-`[.latex` <- function(x, ...){
-  y <- NextMethod()
-  # contrasts and levels will have been handled
-  class(y) <- union('latex', class(y))
-  y
-}
-#' Element-select Latex
-#'
-#' Element-selects latex, retaining class.
-#' @param x latex
-#' @param ... passed to next method
-#' @export
-#' @keywords internal
-#' @family util
-#' @return latex
-#' @examples
-#' x <- c(
-#'   'V_c./F',
-#'   'AUC_ss',
-#'   'C_max_ss',
-#'   'var^eta_j'
-#' )
-#' x <- as_latex(as_spork(x))
-#' class(x)
-#' class(x[[1]])
-`[[.latex` <- function(x, ...){
-  y <- NextMethod()
-  # contrasts and levels will have been handled
-  class(y) <- union('latex', class(y))
-  y
-}
-
-

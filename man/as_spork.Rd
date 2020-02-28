@@ -22,8 +22,10 @@ arbitrarily nested subscripts (\code{x_y_z})
 and superscripts (\code{x^y^z}). A dot
 (\code{x^y._z}) explicitly terminates
 a group. An asterisk (\code{*}) suggests
-multiplication. Special characters
-may be escaped with a backslash.
+multiplication; a literal backslash
+followed by 'n' suggests a newline
+(handling differs for latex vs. plotmath).
+Special characters may be escaped with a backslash.
 Convert to plotmath with \code{\link{as_plotmath}}
 and to latex with \code{\link{as_latex}}.
 Both plotmath and latex names of Greek
@@ -43,10 +45,15 @@ p$labels$x <- label
 print(p)
 }
 \seealso{
-Other spork: 
-\code{\link{as.expression.plotmath}()},
-\code{\link{as_spork.character}()},
-\code{\link{as_spork.factor}()}
+Other spork: \code{\link{[.spork}}, \code{\link{[[.spork}},
+  \code{\link{as.list.spork}}, \code{\link{as.png.spork}},
+  \code{\link{as_latex.spork}},
+  \code{\link{as_plotmath.spork}},
+  \code{\link{as_previews.spork}},
+  \code{\link{as_spar.spork}},
+  \code{\link{as_spork.character}},
+  \code{\link{as_spork.factor}},
+  \code{\link{as_spork.spork}}, \code{\link{ggplot.spork}}
 }
 \concept{spork}
 \keyword{internal}

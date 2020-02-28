@@ -1,3 +1,18 @@
+#' Coerce to Latex
+#'
+#' Coerce to latex.  Generic, with method
+#' \code{\link{as_latex.spork}}.
+#'
+#' @param x object
+#' @param ... passed arguments
+#' @export
+#' @keywords internal
+#' @family latex
+#' @return latex
+#' @examples
+#' example(as_latex.spork)
+as_latex <- function(x, ...)UseMethod('as_latex')
+
 #' Convert One Spork to Latex
 #'
 #' Converts one spork to latex.
@@ -7,29 +22,48 @@
 #' metacharacters are escaped.
 #' See \code{\link{latexToken}}.
 #'
+#' Experimental support is implemented for
+#' the newline character (\code{'\\n'}).
+#' Default behavior is to introduce literal
+#' newline characters into the resulting
+#' tex.  This may have no effect on the
+#' typeset result. It may be possible
+#' to achieve other effects by using
+#' non-default values of helper arguments
+#' and perhaps additional latex packages.
+#'
 #' @export
-#' @keywords internal
-#' @return character
+#' @family interface
+#' @return latex
 #' @family latex
-#' @param x character
+#' @param x spar
+#' @param newline value to replace \code{'\\n'}
 #' @param unrecognized function to process unrecognized tokens: default \code{\link{latexToken}}
-#' @param italics whether to use italics or not (default: no)
-#' @param math whether to wrap in math environment (default: yes)
-#' @param ... passed arguments
+#' @param token_open,token_close these wrap text-like portions of the label; the defaults try to give upright characters (non-italic); also passed to \code{\link{latexToken}}
+#' @param math_open,math_close these wrap math-like portions of the label;  the defaults try to give upright characters (non-italic) which may not work for Greek symbols; also passed to \code{\link{latexToken}}
+#' @param label_open,label_close these wrap the entire label; defaults invoke traditional math mode
+#' @param enforce_math whether to enforce math mode for nested expression: \code{\link{latexToken}}
+#' @param ... passed to \code{unrecognized}; see \code{\link{latexToken}}
 #' @examples
 #' library(magrittr)
-#' 'V_c./F' %>% spork_to_latex
-#' 'AUC_ss' %>% spork_to_latex
-#' 'C_max_ss' %>% spork_to_latex
-#' 'var^eta_j' %>% spork_to_latex
-#' '& % $ # \\_ { } ~ \\^ \\' %>% spork_to_latex
-#' 'one joule (Omega) ~ 1 kg*m^2./s^2' %>% spork_to_latex
+#' 'V_c./F' %>% as_spork %>% as_latex
+#' 'AUC_ss' %>% as_spork %>% as_latex
+#' 'C_max_ss' %>% as_spork %>% as_latex
+#' 'var^eta_j' %>% as_spork %>% as_latex
+#' '& % $ # \\_ { } ~ \\^ \\' %>% as_spork %>% as_latex
+#' 'one joule (Omega) ~ 1 kg*m^2./s^2' %>% as_spork %>% as_latex
 
-spork_to_latex <- function(
+as_latex.spar <- function(
   x,
+  newline = getOption('latex_newline','\n'),
   unrecognized = getOption('latex_unrecognized','latexToken'),
-  italics = FALSE,
-  math = TRUE,
+  token_open = getOption('latex_token_open', '\\textrm{'),
+  token_close = getOption('latex_token_close','}'),
+  math_open = getOption('latex_math_open', '\\mathrm{'),
+  math_close = getOption('latex_math_close', '}'),
+  label_open = getOption('latex_label_open', '$'),
+  label_close = getOption('latex_label_close', '$'),
+  enforce_math = getOption('latex_enforce_math',TRUE),
   ...
 ){
   # the latex of a spork is the sequential
@@ -43,14 +77,13 @@ spork_to_latex <- function(
   # names of Greek letters, but renders other
   # tokens literally.
 
-  x <- sporklet(x,...)
   closers <- character(0)
   active <- FALSE
-  if(length(x)==0)return(x)
-  if(identical(x, ''))return(x)
+  if(length(x)==0)return(structure(x, class = union('latex', class(x))))
+  if(identical(x, ''))return(structure(x, class = union('latex', class(x))))
   base <- ''
   explicit <- c(
-    '\\s+',
+    '[\\][n]', '\\s+',
     '[*]','[.]','[_]','\\^',
     '[\\][*]','[\\][.]','[\\][_]','[\\]\\^'
   )
@@ -59,7 +92,18 @@ spork_to_latex <- function(
     if(max(m) == -1){ # unrecognized token
       # pre-process
       fun <- match.fun(unrecognized)
-      token <- fun(token, unrecognized = unrecognized, math = math, italics = italics, ...)
+      token <- fun(
+        token,
+        unrecognized = unrecognized,
+        token_open = token_open,
+        token_close = token_close,
+        math_open = math_open,
+        math_close = math_close,
+        label_open = label_open,
+        label_close = label_close,
+        enforce_math = enforce_math,
+        ...
+      )
       if(active){
         base <- paste0(base, ' ', token)
       }else{
@@ -67,7 +111,7 @@ spork_to_latex <- function(
           base <- paste0(base, ' ', token)
           active <- TRUE
         }else{ # empty nest or start of line
-          base <- paste0(base,' ', token)
+          base <- paste0(base, token)
           active <- TRUE
         }
       }
@@ -77,8 +121,11 @@ spork_to_latex <- function(
       m <- m[m == min(m)]
       stopifnot(length(m) == 1)
       p <- names(m)
+      if(p == '[\\][n]'){
+          base <- paste0(base, newline)
+      }
       if(p == '\\s+'){
-        token <- paste0("\\textrm{",token,"}")
+        token <- paste0(token_open,token,token_close)
         if(active){
           base <- paste0(base, ' ', token)
         }else{
@@ -86,13 +133,13 @@ spork_to_latex <- function(
             base <- paste0(base, ' ', token)
             active <- TRUE
           }else{ # empty nest or start of line
-            base <- paste0(base, ' ', token)
+            base <- paste0(base, token)
             active <- TRUE
           }
         }
       }
       if(p == '[\\][*]'){
-        token <- paste0("\\textrm{*}")
+        token <- paste0(token_open, '*', token_close)
         if(active){
           base <- paste0(base, ' ', token)
         }else{
@@ -101,7 +148,7 @@ spork_to_latex <- function(
         }
       }
       if(p == '[\\][.]'){
-        token <- paste0("\\textrm{.}")
+        token <- paste0(token_open, '.', token_close)
         if(active){
           base <- paste0(base, ' ', token)
         }else{
@@ -110,7 +157,7 @@ spork_to_latex <- function(
         }
       }
       if(p == '[\\][_]'){
-        token <- paste0("\\textrm{\\_}")
+        token <- paste0(token_open, '\\_', token_close)
         if(active){
           base <- paste0(base, ' ', token)
         }else{
@@ -119,7 +166,7 @@ spork_to_latex <- function(
         }
       }
       if(p == '[\\]\\^'){
-        token <- paste0("\\textrm{{\\textasciicircum}}")
+        token <- paste0(token_open,"{\\textasciicircum}",token_close)
         if(active){
           base <- paste0(base, ' ', token)
         }else{
@@ -160,7 +207,7 @@ spork_to_latex <- function(
           base <- paste0(base,"_{")
           active <- FALSE
         }else{
-          if(!grepl('[]}]', base)){
+          if(!grepl('[]}]$', base)){
             # must have something to subscript
             base <- paste0(base, "~_{")
           }else{
@@ -174,7 +221,7 @@ spork_to_latex <- function(
           base <- paste0(base, "^{")
           active <- FALSE
         }else{
-          if(!grepl('[]}]', base)){
+          if(!grepl('[]}]$', base)){
             # must have something to superscript
             base <- paste0(base, "~^{")
           }else{
@@ -193,7 +240,7 @@ spork_to_latex <- function(
     if(active){
       base <- paste0(base, paste(closers, collapse = ''))
     }else{
-      if(grepl('[[{]',base)){
+      if(grepl('[[{]$',base)){
         # empty script ok
         base <- paste0(base, paste(closers, collapse = ''))
       }else{
@@ -201,8 +248,8 @@ spork_to_latex <- function(
       }
     }
   }
-  if(!italics) base <- paste0('\\mathrm{', base, '}')
-  if(math) base <- paste0('$', base, '$') # enforce math environment
+  base <- paste0(math_open, base, math_close)
+  base <- paste0(label_open, base, label_close) # enforce math environment
   return(base)
 }
 
@@ -214,18 +261,31 @@ spork_to_latex <- function(
 #'
 #' @param x character
 #' @param unrecognized function to process unrecognized tokens
-#' @param italics whether to use italics or not
-#' @param math whether to wrap in math environment
+#' @param token_open,token_close these wrap the entire token (used once); by default the token is text-like
+#' @param math_open,math_close these wrap math-like portions of the token;  the defaults try to give upright characters (non-italic) which may not work for Greek symbols
+#' @param label_open,label_close these re-wrap math-like portions of the token if \code{enforce_math} is TRUE; defaults invoke traditional math mode
+#' @param enforce_math whether to enforce math mode for nested expression
 #' @param ... ignored arguments
 #' @export
 #' @family latex
-#' @keywords internal
-#' @return character
+#' @family interface
+#' @return latex
 #' @examples
 #' latexToken('foo')
 #' latexToken('alpha')
 #' latexToken('Alpha')
-latexToken <- function(x, unrecognized = latexToken, math = TRUE, italics = FALSE, ...){
+latexToken <- function(
+  x,
+  unrecognized = latexToken,
+  token_open = getOption('latex_token_open', '\\textrm{'),
+  token_close = getOption('latex_token_close','}'),
+  math_open = getOption('latex_math_open', '\\mathrm{'),
+  math_close = getOption('latex_math_close', '}'),
+  label_open = getOption('latex_label_open', '$'),
+  label_close = getOption('latex_label_close', '$'),
+  enforce_math = getOption('latex_enforce_math',TRUE),
+  ...
+){
   special <- c(  '&',  '%',  '$',  '#',  '_',  '{',  '}','~',                '^',               '\\'             ) # special in latex
   replace <- c('\\&','\\%','\\$','\\#','\\_','\\{','\\}','${\\sim}$','{\\textasciicircum}','{\\textbackslash}')      # use in latex
   greek <- c(
@@ -323,17 +383,19 @@ latexToken <- function(x, unrecognized = latexToken, math = TRUE, italics = FALS
       pattern <- nms[[p]]
       pattern <- paste0('\\b',pattern,'\\b')
       bef <- before(input, pattern, fixed = FALSE)
-      mathopen <- '\\'
-      mathclose <- '{}'
-      if(!italics){
-        mathopen <- '\\mathrm{'
-        mathclose <- '}'
+      # mathopen <- '\\'
+      # mathclose <- '{}'
+      # if(!italics){
+      #   mathopen <- '\\mathrm{'
+      #   mathclose <- '}'
+      # }
+      mathopen <- math_open
+      mathclose <- math_close
+      if(enforce_math){
+        mathopen <- paste0(label_open,mathopen)
+        mathclose <- paste0(mathclose, label_close)
       }
-      if(!math){
-        warning('enforcing math mode for nested expression')
-      }
-      mathopen <- paste0('$',mathopen)
-      mathclose <- paste0(mathclose, '$')
+
       ths <- paste0(mathopen, p, mathclose)
       #aft <- after(input, pattern, fixed = FALSE)
       output <- paste0(output, bef, ths)
@@ -345,8 +407,91 @@ latexToken <- function(x, unrecognized = latexToken, math = TRUE, italics = FALS
   }
   x <- output
 
-  x <- paste0('\\textrm{',x, '}')
-
+  x <- paste0(token_open, x, token_close)
+  class(x) <- union('latex', class(x))
   x
 }
+
+#' Convert Spork to Latex
+#'
+#' Converts spork to latex.
+#' Vectorized version of \code{\link{as_latex.spar}}.
+#'
+#' @export
+#' @param x spork
+#' @param ... passed to \code{\link{as_latex.spar}}
+#' @return latex
+#' @family latex
+#' @family spork
+#' @family interface
+#' @examples
+#' x <- c(
+#'   'V_c./F',
+#'   'AUC_ss',
+#'   'C_max_ss',
+#'   'var^eta_j'
+#' )
+#' x <- as_spork(x)
+#' as_latex(x)
+#' as_latex(as_spork('gravitational force (kg\\.m/s^2.)'))
+as_latex.spork <- function(x, ...){
+  y <- lapply(x, as_spar, USE.NAMES = F, ...)
+  y <- sapply(y, as_latex, USE.NAMES = F, ...)
+  if(length(y) == 0) y <- character(0)
+  class(y) <- union('latex', class(y))
+  y
+}
+#' Subset Latex
+#'
+#' Subsets latex, retaining class.
+#' @param x latex
+#' @param ... passed to next method
+#' @export
+#' @keywords internal
+#' @family latex
+#' @return latex
+#' @examples
+#' x <- c(
+#'   'V_c./F',
+#'   'AUC_ss',
+#'   'C_max_ss',
+#'   'var^eta_j'
+#' )
+#' x <- as_latex(as_spork(x))
+#' class(x)
+#' class(x[1])
+`[.latex` <- function(x, ...){
+  y <- NextMethod()
+  # contrasts and levels will have been handled
+  class(y) <- union('latex', class(y))
+  y
+}
+
+#' Element-select Latex
+#'
+#' Element-selects latex, retaining class.
+#' @param x latex
+#' @param ... passed to next method
+#' @export
+#' @keywords internal
+#' @family latex
+#' @return latex
+#' @examples
+#' x <- c(
+#'   'V_c./F',
+#'   'AUC_ss',
+#'   'C_max_ss',
+#'   'var^eta_j'
+#' )
+#' x <- as_latex(as_spork(x))
+#' class(x)
+#' class(x[[1]])
+`[[.latex` <- function(x, ...){
+  y <- NextMethod()
+  # contrasts and levels will have been handled
+  class(y) <- union('latex', class(y))
+  y
+}
+
+
 
