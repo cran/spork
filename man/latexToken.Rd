@@ -10,8 +10,8 @@ latexToken(
   token_close = getOption("latex_token_close", "}"),
   math_open = getOption("latex_math_open", "\\\\mathrm{"),
   math_close = getOption("latex_math_close", "}"),
-  label_open = getOption("latex_label_open", "$"),
-  label_close = getOption("latex_label_close", "$"),
+  label_open = getOption("latex_label_open", "\\\\("),
+  label_close = getOption("latex_label_close", "\\\\)"),
   enforce_math = getOption("latex_enforce_math", TRUE),
   ...
 )
@@ -46,7 +46,7 @@ latexToken('Alpha')
 Other latex: 
 \code{\link{[.latex}()},
 \code{\link{[[.latex}()},
-\code{\link{as_latex.default}()},
+\code{\link{as_latex.greek}()},
 \code{\link{as_latex.spar}()},
 \code{\link{as_latex.spork}()},
 \code{\link{as_latex}()},
@@ -56,7 +56,6 @@ Other interface:
 \code{\link{as.expression.plotmath}()},
 \code{\link{as_html.spar}()},
 \code{\link{as_html.spork}()},
-\code{\link{as_latex.default}()},
 \code{\link{as_latex.spar}()},
 \code{\link{as_latex.spork}()},
 \code{\link{as_plotmath.spar}()},

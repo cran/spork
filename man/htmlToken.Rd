@@ -43,15 +43,16 @@ htmlToken('Alpha')
 Other html: 
 \code{\link{[.html}()},
 \code{\link{[[.html}()},
+\code{\link{as_html.greek}()},
 \code{\link{as_html.spar}()},
 \code{\link{as_html.spork}()},
-\code{\link{as_html}()}
+\code{\link{as_html}()},
+\code{\link{html2xml}()}
 
 Other interface: 
 \code{\link{as.expression.plotmath}()},
 \code{\link{as_html.spar}()},
 \code{\link{as_html.spork}()},
-\code{\link{as_latex.default}()},
 \code{\link{as_latex.spar}()},
 \code{\link{as_latex.spork}()},
 \code{\link{as_plotmath.spar}()},

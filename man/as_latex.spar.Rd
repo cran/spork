@@ -7,14 +7,15 @@
 \method{as_latex}{spar}(
   x,
   newline = getOption("latex_newline", "\\n"),
-  unrecognized = getOption("latex_unrecognized", "latexToken"),
+  unrecognized = getOption("latex_unrecognized", spork::latexToken),
   token_open = getOption("latex_token_open", "\\\\textrm{"),
   token_close = getOption("latex_token_close", "}"),
   math_open = getOption("latex_math_open", "\\\\mathrm{"),
   math_close = getOption("latex_math_close", "}"),
-  label_open = getOption("latex_label_open", "$"),
-  label_close = getOption("latex_label_close", "$"),
+  label_open = getOption("latex_label_open", "\\\\("),
+  label_close = getOption("latex_label_close", "\\\\)"),
   enforce_math = getOption("latex_enforce_math", TRUE),
+  script_size = getOption("latex_script_size", c("", "\\\\scriptsize ", "\\\\tiny ")),
   ...
 )
 }
@@ -32,6 +33,8 @@
 \item{label_open, label_close}{these wrap the entire label; defaults invoke traditional math mode}
 
 \item{enforce_math}{whether to enforce math mode for nested expression: \code{\link{latexToken}}}
+
+\item{script_size}{three character values, one of which will be appended to token_open for unnested, nested, and multiply-nested contexts}
 
 \item{...}{passed to \code{unrecognized}; see \code{\link{latexToken}}}
 }
@@ -65,13 +68,14 @@ library(magrittr)
 'var^eta_j' \%>\% as_spork \%>\% as_latex
 '& \% $ # \\\\_ { } ~ \\\\^ \\\\' \%>\% as_spork \%>\% as_latex
 'one joule (Omega) ~ 1 kg*m^2./s^2' \%>\% as_spork \%>\% as_latex
+'one joule (`Omega`) ~ 1 kg*m^2./s^2' \%>\% as_spork \%>\% as_latex
+'one joule (\\\\`Omega\\\\`) ~ 1 kg*m^2./s^2' \%>\% as_spork \%>\% as_latex
 }
 \seealso{
 Other interface: 
 \code{\link{as.expression.plotmath}()},
 \code{\link{as_html.spar}()},
 \code{\link{as_html.spork}()},
-\code{\link{as_latex.default}()},
 \code{\link{as_latex.spork}()},
 \code{\link{as_plotmath.spar}()},
 \code{\link{as_plotmath.spork}()},
@@ -84,7 +88,7 @@ Other interface:
 Other latex: 
 \code{\link{[.latex}()},
 \code{\link{[[.latex}()},
-\code{\link{as_latex.default}()},
+\code{\link{as_latex.greek}()},
 \code{\link{as_latex.spork}()},
 \code{\link{as_latex}()},
 \code{\link{concatenate.latex}()},

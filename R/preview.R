@@ -32,6 +32,7 @@ as_preview <- function(x, ...)UseMethod('as_preview')
 #' @param long nominal page length
 #' @param dir a working directory; see \code{\link[latexpdf]{as.pdf}}
 #' @param gs_cmd ghostscript command; see \code{\link[latexpdf]{ghostconvert}}
+#' @param morePreamble additional text to insert in preamble; passed to \code{\link[latexpdf]{as.pdf}}
 #' @param prolog passed to \code{\link[latexpdf]{as.document}}
 #' @param epilog passed to \code{\link[latexpdf]{as.document}}
 #' @param ... passed arguments
@@ -60,7 +61,11 @@ as_preview.latex <- function(
   stem = 'latex_preview',
   dir = tempdir(),
   gs_cmd = getOption('gs_cmd','mgs'),
-  preamble = '\\usePackage{amsmath}\\n',
+  morePreamble = ifelse(
+    getOption('spork_upgreek', TRUE),
+    '\\usepackage{upgreek}\n',
+    NULL
+  ),
   prolog = '\\begin{center}',
   epilog = '\\end{center}',
   ...
@@ -72,7 +77,7 @@ as_preview.latex <- function(
     dir = dir,
     wide = wide,
     long = long,
-    #preamble = preamble,
+    morePreamble = morePreamble,
     prolog = prolog,
     epilog = epilog,
     ...
@@ -81,6 +86,69 @@ as_preview.latex <- function(
   img <- readPNG(png)
   grid.raster(img)
   invisible(png)
+}
+
+#' Preview Spork as Html
+#'
+#' Preview spork after conversion to html
+#' Invokes the viewer using the print method for class 'kableExtra'.
+#' @param x spork; see \code{\link{as_spork}}
+#' @param ... ignored arguments
+#' @export
+#' @keywords internal
+#' @family preview
+#' @import kableExtra
+#' @return kableExtra
+#' @examples
+#' library(magrittr)
+#' 'one joule (Omega) ~ 1 kg*m^2./s^2' %>% 
+#' as_spork %>%
+#' as_html %>% 
+#' as_preview
+
+as_preview.html <- function(x,...){
+  requireNamespace('kableExtra')
+  stopifnot(length(x) == 1)
+# https://stackoverflow.com/questions/9825796/how-to-make-text-vertically-and-horizontally-center-in-an-html-page  
+  page <- '
+ <!DOCTYPE html>
+<html lang="de">
+    <head>
+        <title>Hello World</title>
+        <style>
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+        }
+
+        body {
+            display: table;
+        }
+
+        .my-block {
+            text-align: center;
+            display: table-cell;
+            vertical-align: middle;
+        }
+        </style>
+    </head>
+    <body>
+    <div class="my-block">
+    <p style="font-size:40px; "> 
+     _spork_placeholder_
+    </p>
+      
+    </div>
+    </body>
+</html>
+'
+  page <- sub('_spork_placeholder_', x, page)
+  class(page) <- 'kableExtra'
+
+  invisible(page)
 }
 
 #' Compare Previews
@@ -97,6 +165,23 @@ as_preview.latex <- function(
 #' example(as_previews.spork)
 as_previews <- function(x,...)UseMethod('as_previews')
 
+#' Default Compare Previews
+#'
+#' Compare previews by default assuming input is spork..
+#' @param x character
+#' @param ... passed arguments
+#' @export
+#' @keywords internal
+#' @return see as_previews.spork
+#' @family preview
+#' @examples
+#' example(as_previews.spork)
+as_previews.default <- function(x, ...){
+  x <- as.character(x)
+  x <- as_spork(x, ...)
+  as_previews(x)
+}
+
 #' Compare Previews of Spork
 #'
 #' Compares plotmath and latex previews of spork
@@ -108,6 +193,7 @@ as_previews <- function(x,...)UseMethod('as_previews')
 #' @param long length in mm of the latex image
 #' @param width width (default: inches) of the plotmath image
 #' @param height height (default: inches) of the plotmath image
+#' @param sleep how long to pause after html before latex/plotmath
 #' @param ... passed arguments
 #' @export
 #' @importFrom grid grid.newpage
@@ -134,12 +220,14 @@ as_previews <- function(x,...)UseMethod('as_previews')
 #' # 'omega.omega1.pi.varpi' %>% as_spork %>% as_previews
 #' }
 
-as_previews.spork <- function(x, wide = 70, long = 20, width = 3, height = 1,...){
+as_previews.spork <- function(x, wide = 70, long = 20, width = 3, height = 1, sleep = 2, ...){
   stopifnot(length(x) == 1)
   stopifnot(inherits(x, 'character'))
   x <- as_spork(x)
   grid.newpage()
-  a <- as_preview(as_plotmath(x), width = width, height = height,...)
+  print(as_preview(as_html(x), ...))
+  Sys.sleep(sleep)
+  a <- as_preview(as_plotmath(x), width = width, height = height, ...)
   b <- as_preview(as_latex(x), wide = wide, long = long,...)
   invisible(list(plotmath = a, latex = b))
 }

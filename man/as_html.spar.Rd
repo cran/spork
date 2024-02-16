@@ -7,7 +7,7 @@
 \method{as_html}{spar}(
   x,
   newline = getOption("html_newline", "<br/>"),
-  unrecognized = getOption("html_unrecognized", "htmlToken"),
+  unrecognized = getOption("html_unrecognized", spork::htmlToken),
   token_open = getOption("html_token_open", ""),
   token_close = getOption("html_token_close", ""),
   math_open = getOption("html_math_open", ""),
@@ -58,12 +58,13 @@ library(magrittr)
 'var^eta_j' \%>\% as_spork \%>\% as_html
 '& < \% $ # \\\\_ { } ~ \\\\^ \\\\' \%>\% as_spork \%>\% as_html
 'one joule (Omega) ~ 1 kg*m^2./s^2' \%>\% as_spork \%>\% as_html
+'one joule (`Omega`) ~ 1 kg*m^2./s^2' \%>\% as_spork \%>\% as_html
+'one joule (\\\\`Omega\\\\`) ~ 1 kg*m^2./s^2' \%>\% as_spork \%>\% as_html
 }
 \seealso{
 Other interface: 
 \code{\link{as.expression.plotmath}()},
 \code{\link{as_html.spork}()},
-\code{\link{as_latex.default}()},
 \code{\link{as_latex.spar}()},
 \code{\link{as_latex.spork}()},
 \code{\link{as_plotmath.spar}()},
@@ -77,8 +78,10 @@ Other interface:
 Other html: 
 \code{\link{[.html}()},
 \code{\link{[[.html}()},
+\code{\link{as_html.greek}()},
 \code{\link{as_html.spork}()},
 \code{\link{as_html}()},
+\code{\link{html2xml}()},
 \code{\link{htmlToken}()}
 }
 \concept{html}
