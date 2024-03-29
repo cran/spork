@@ -1,9 +1,10 @@
-f860e544d42ba48606b0d02ab14f6134 *DESCRIPTION
-94119bd07990d7f67a862420d1404203 *NAMESPACE
+7617be11ba58f3812e6a180a0169a5e5 *DESCRIPTION
+82ff0dbbf73bb2f777326831bb1fa951 *NAMESPACE
 67459006d3593b4d41ffeb68bb346519 *R/concatenate.R
+9ce8ffaa4b7c1d70f1af82cf1e2ee2f6 *R/explicit.R
 70ef672be42b9a28b2fddb2581b81622 *R/expression.R
 5e27767b20f06591ea472d40fa563905 *R/html.R
-25ad7891242f0e7d7a24f57da5c3debc *R/latex.R
+c9c89417c56a6e8d2785e2a2eb397b18 *R/latex.R
 0a1d988000f678f40ae2119ff21edea9 *R/plotmath.R
 bcf07737279731654cf9b06ff534a429 *R/preview.R
 5f96a2bad4aad46077eaea0c16c644be *R/spar.R
@@ -21,7 +22,7 @@ ce7bc7ae2e1d7edfae2681259d0939ed *man/as.list.spork.Rd
 16c11f46f773d6169569528b86ffc6d5 *man/as_latex.Rd
 6ee7bac79051cafaedc2246dc8e4bc0e *man/as_latex.greek.Rd
 943238f67a889b2f485cca14d0715d64 *man/as_latex.spar.Rd
-6ffc4bcc0db7466a5a5f084928b3a3c6 *man/as_latex.spork.Rd
+f1b1c0f7fdbeed5275d2259e90f7b871 *man/as_latex.spork.Rd
 dcd4273084f2ccc007c770b51743e55b *man/as_plotmath.Rd
 a9e6b18d1a15175c6843f2cf2530c8ea *man/as_plotmath.greek.Rd
 aadc151ec83c456bbe534597f0a23a57 *man/as_plotmath.spar.Rd
@@ -45,6 +46,8 @@ e18cb3ba86aeb559443058738b1b1953 *man/as_spork.spork.Rd
 e2f128ae1efaa18e5abc1a2e25e4beb4 *man/concatenate.character.Rd
 10b48335d42cdaad397c23afc0da247c *man/concatenate.latex.Rd
 1b2626b71ec364144dac067e73a21b52 *man/concatenate.plotmath.Rd
+690433109429d8cef7108f8b89e66ce7 *man/explicit.Rd
+3661cf686d27944f836bca72c114677e *man/explicit.spork.Rd
 8de92af779d417bcc55ea9d36387a752 *man/ggplot.plotmath.Rd
 69e874e2c9e63b3d6afb01edfa6de595 *man/ggplot.spork.Rd
 22bc82759399ddd2f6a1251bb28b51e0 *man/goodToken.Rd
@@ -63,5 +66,6 @@ c3e82c9af9b9068bc5b0e78bb8f2f514 *man/greek.Rd
 26de4006ced3bf7590ace2237da8a9ba *man/sub-sub-.plotmath.Rd
 5f25f25c798f46dd29185100f9b7b736 *man/sub-sub-.spork.Rd
 5fc07381b060a4d5e54285f69b0ed404 *tests/testthat.R
+68b408b4fb00e1948a07501d822161dc *tests/testthat/001.rds
 32f80aa557d37eca61fc79633c824965 *tests/testthat/Rplots.pdf
-3a9725753d319be696ebafdc31b032af *tests/testthat/test-spork.R
+e22028be597a1a7a335a299ae972357d *tests/testthat/test-spork.R

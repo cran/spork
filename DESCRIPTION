@@ -1,7 +1,7 @@
 Package: spork
 Type: Package
 Title: Generalized Label Formatting
-Version: 0.3.2
+Version: 0.3.3
 Author: Tim Bergsma
 Maintainer: Tim Bergsma <bergsmat@gmail.com>
 Description: The 'spork' syntax describes
@@ -19,6 +19,6 @@ Imports: ggplot2, png, latexpdf, kableExtra
 RoxygenNote: 7.2.3
 Suggests: testthat (>= 2.1.0), magrittr, dplyr
 NeedsCompilation: no
-Packaged: 2024-02-16 01:31:45 UTC; tim.bergsma
+Packaged: 2024-03-29 08:01:14 UTC; tim.bergsma
 Repository: CRAN
-Date/Publication: 2024-02-16 05:30:02 UTC
+Date/Publication: 2024-03-29 08:30:06 UTC
