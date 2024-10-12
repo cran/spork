@@ -1,3 +1,49 @@
+#' Coerce to Latex
+#'
+#' Coerce to latex.  Generic, with method
+#' \code{\link{as_latex.spork}}.
+#'
+#' @param x object
+#' @param ... passed arguments
+#' @export
+#' @keywords internal
+#' @family latex
+#' @return latex
+#' @examples
+#' example(as_latex.spork)
+as_latex <- function(x, ...)UseMethod('as_latex')
+
+#' Coerce Latex to Latex
+#' 
+#' Coerces class 'latex' to 'latex'.  Simply returns x.
+
+#' @param x latex
+#' @param ... ignored
+#' @export
+#' @keywords internal
+#' @family latex
+#' @return latex
+#' @examples
+#' class(as_latex(as_latex(letters)))
+as_latex.latex <- function(x, ...)x
+
+#' Coerce Default to Latex
+#' 
+#' Coerces non-latex to 'latex'. Simply prepends 'latex' to class path.
+
+#' @param x presumably inherits character 
+#' @param ... ignored
+#' @export
+#' @keywords internal
+#' @family latex
+#' @return latex
+#' @examples
+#' class(as_latex(letters))
+as_latex.default <- function(x, ...){
+  class(x) <- union('latex', class(x))
+  x
+}
+
 #' Convert Greek to Latex
 #' 
 #' Converts Greek letter names to latex.
@@ -59,21 +105,6 @@ as_latex.greek <- function(x, ..., upgreek = getOption('spork_upgreek', TRUE)){
   y
 }
 
-
-#' Coerce to Latex
-#'
-#' Coerce to latex.  Generic, with method
-#' \code{\link{as_latex.spork}}.
-#'
-#' @param x object
-#' @param ... passed arguments
-#' @export
-#' @keywords internal
-#' @family latex
-#' @return latex
-#' @examples
-#' example(as_latex.spork)
-as_latex <- function(x, ...)UseMethod('as_latex')
 
 #' Convert One Spork to Latex
 #'
